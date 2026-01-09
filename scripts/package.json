@@ -1,0 +1,8 @@
+{
+  "name": "scripts",
+  "type": "module",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "mongoose": "^9.1.2"
+  }
+}
