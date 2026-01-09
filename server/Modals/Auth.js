@@ -8,6 +8,12 @@ const userschema = mongoose.Schema({
   joinedon: { type: Date, default: Date.now },
   isPremium: { type: Boolean, default: false },
   premiumSince: { type: Date },
+  subscriptionPlan: { 
+    type: String, 
+    enum: ["free", "bronze", "silver", "gold"], 
+    default: "free" 
+  },
+  subscriptionUpdatedAt: { type: Date },
 });
 
 export default mongoose.model("user", userschema);
