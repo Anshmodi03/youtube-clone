@@ -8,10 +8,13 @@ import {
   Share,
   ThumbsDown,
   ThumbsUp,
+  Loader2,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useUser } from "@/lib/AuthContext";
 import axiosInstance from "@/lib/axiosinstance";
+import { toast } from "sonner";
+import PremiumDialog from "./PremiumDialog";
 
 const VideoInfo = ({ video }: any) => {
   const [likes, setlikes] = useState(video.Like || 0);
@@ -19,15 +22,11 @@ const VideoInfo = ({ video }: any) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isDisliked, setIsDisliked] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
-  const { user } = useUser();
+  const { user, login } = useUser();
   const [isWatchLater, setIsWatchLater] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [showPremiumDialog, setShowPremiumDialog] = useState(false);
 
-  // const user: any = {
-  //   id: "1",
-  //   name: "John Doe",
-  //   email: "john@example.com",
-  //   image: "https://github.com/shadcn.png?height=32&width=32",
-  // };
   useEffect(() => {
     setlikes(video.Like || 0);
     setDislikes(video.Dislike || 0);
@@ -51,6 +50,7 @@ const VideoInfo = ({ video }: any) => {
     };
     handleviews();
   }, [user]);
+
   const handleLike = async () => {
     if (!user) return;
     try {
@@ -74,6 +74,7 @@ const VideoInfo = ({ video }: any) => {
       console.log(error);
     }
   };
+
   const handleWatchLater = async () => {
     try {
       const res = await axiosInstance.post(`/watch/${video._id}`, {
@@ -88,6 +89,7 @@ const VideoInfo = ({ video }: any) => {
       console.log(error);
     }
   };
+
   const handleDislike = async () => {
     if (!user) return;
     try {
@@ -111,6 +113,72 @@ const VideoInfo = ({ video }: any) => {
       console.log(error);
     }
   };
+
+  const handleDownload = async () => {
+    if (!user) {
+      toast.error("Please sign in to download videos");
+      return;
+    }
+
+    setIsDownloading(true);
+
+    try {
+      // Check if user can download
+      const checkRes = await axiosInstance.post(`/download/check/${video._id}`, {
+        userId: user?._id,
+      });
+
+      if (!checkRes.data.canDownload) {
+        // User has reached daily limit, show premium dialog
+        setShowPremiumDialog(true);
+        setIsDownloading(false);
+        return;
+      }
+
+      // Record the download
+      const downloadRes = await axiosInstance.post(`/download/${video._id}`, {
+        userId: user?._id,
+      });
+
+      if (downloadRes.data.success) {
+        // Trigger actual download
+        const link = document.createElement("a");
+        link.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/${video.filepath}`;
+        link.download = video.videotitle || "video";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success("Download started!");
+      } else if (downloadRes.data.needsPremium) {
+        setShowPremiumDialog(true);
+      }
+    } catch (error: any) {
+      if (error.response?.data?.needsPremium) {
+        setShowPremiumDialog(true);
+      } else {
+        toast.error(error.response?.data?.message || "Download failed");
+      }
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const handlePremiumSuccess = async (paymentId: string) => {
+    try {
+      const response = await axiosInstance.post(`/download/premium/${user?._id}`, { paymentId });
+      if (response.data.success) {
+        login(response.data.user);
+        toast.success("Welcome to Premium! You now have unlimited downloads.");
+        setShowPremiumDialog(false);
+        // Retry download after premium upgrade
+        handleDownload();
+      }
+    } catch (error) {
+      console.error("Premium upgrade error:", error);
+      toast.error("Premium upgrade failed");
+    }
+  };
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">{video.videotitle}</h1>
@@ -179,8 +247,14 @@ const VideoInfo = ({ video }: any) => {
             variant="ghost"
             size="sm"
             className="bg-gray-100 rounded-full"
+            onClick={handleDownload}
+            disabled={isDownloading}
           >
-            <Download className="w-5 h-5 mr-2" />
+            {isDownloading ? (
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+            ) : (
+              <Download className="w-5 h-5 mr-2" />
+            )}
             Download
           </Button>
           <Button
@@ -212,6 +286,12 @@ const VideoInfo = ({ video }: any) => {
           {showFullDescription ? "Show less" : "Show more"}
         </Button>
       </div>
+
+      <PremiumDialog
+        isOpen={showPremiumDialog}
+        onClose={() => setShowPremiumDialog(false)}
+        onSuccess={handlePremiumSuccess}
+      />
     </div>
   );
 };
