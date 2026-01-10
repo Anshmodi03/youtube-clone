@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "./ui/button";
-import { Crown, Clock } from "lucide-react";
+import { Crown, Clock, Play, Pause, FastForward, Rewind, SkipForward, MessageSquare, X } from "lucide-react";
 
 // Dynamic import for react-player to avoid SSR issues
 const ReactPlayer = dynamic(() => import("react-player"), { 
@@ -23,6 +23,9 @@ interface VideoPlayerProps {
   };
   subscriptionPlan?: string;
   onUpgradeClick?: () => void;
+  onNavigateNext?: () => void;
+  onToggleComments?: () => void;
+  onCloseWebsite?: () => void;
 }
 
 // Watch time limits in seconds
@@ -33,16 +36,35 @@ const WATCH_LIMITS: Record<string, number> = {
   gold: -1,        // Unlimited (-1)
 };
 
+// Tap detection constants
+const TAP_TIMEOUT = 400; // ms to wait for next tap
+const SEEK_SECONDS = 10;
+
 export default function VideoPlayer({ 
   video, 
   subscriptionPlan = "free",
-  onUpgradeClick 
+  onUpgradeClick,
+  onNavigateNext,
+  onToggleComments,
+  onCloseWebsite
 }: VideoPlayerProps) {
   const playerRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const tapCountRef = useRef(0);
+  const lastTapZoneRef = useRef<string>("");
+  
   const [isLimitReached, setIsLimitReached] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [showWarning, setShowWarning] = useState(false);
   const [playing, setPlaying] = useState(false);
+  
+  // Gesture feedback states
+  const [gestureIndicator, setGestureIndicator] = useState<{
+    show: boolean;
+    type: "forward" | "backward" | "play" | "pause" | "next" | "comments" | "close" | null;
+    zone: "left" | "center" | "right" | null;
+  }>({ show: false, type: null, zone: null });
 
   const watchLimit = WATCH_LIMITS[subscriptionPlan] || WATCH_LIMITS.free;
   const isUnlimited = watchLimit === -1;
@@ -93,10 +115,202 @@ export default function VideoPlayer({
     }
   }, [subscriptionPlan, currentTime]);
 
+  // Show gesture indicator with auto-hide
+  const showGestureIndicator = useCallback((
+    type: typeof gestureIndicator.type,
+    zone: typeof gestureIndicator.zone
+  ) => {
+    setGestureIndicator({ show: true, type, zone });
+    setTimeout(() => {
+      setGestureIndicator({ show: false, type: null, zone: null });
+    }, 800);
+  }, []);
+
+  // Seek video using ReactPlayer's built-in methods
+  const seekVideo = useCallback((seconds: number) => {
+    if (playerRef.current) {
+      try {
+        // Use ReactPlayer's getCurrentTime and seekTo methods
+        const current = playerRef.current.getCurrentTime() || 0;
+        const newTime = Math.max(0, current + seconds);
+        playerRef.current.seekTo(newTime, "seconds");
+      } catch (error) {
+        console.log("Seek error:", error);
+      }
+    }
+  }, []);
+
+
+  // Handle gesture actions
+  const executeGesture = useCallback((tapCount: number, zone: string) => {
+    // Double-tap actions
+    if (tapCount === 2) {
+      if (zone === "right") {
+        seekVideo(SEEK_SECONDS);
+        showGestureIndicator("forward", "right");
+      } else if (zone === "left") {
+        seekVideo(-SEEK_SECONDS);
+        showGestureIndicator("backward", "left");
+      }
+    }
+    // Single-tap in center - toggle play/pause
+    else if (tapCount === 1 && zone === "center") {
+      setPlaying(prev => !prev);
+      showGestureIndicator(playing ? "pause" : "play", "center");
+    }
+    // Triple-tap actions
+    else if (tapCount === 3) {
+      if (zone === "center") {
+        // Navigate to next video
+        showGestureIndicator("next", "center");
+        setTimeout(() => {
+          onNavigateNext?.();
+        }, 300);
+      } else if (zone === "right") {
+        // Close website
+        showGestureIndicator("close", "right");
+        setTimeout(() => {
+          if (onCloseWebsite) {
+            onCloseWebsite();
+          } else {
+            window.close();
+          }
+        }, 300);
+      } else if (zone === "left") {
+        // Show comments
+        showGestureIndicator("comments", "left");
+        setTimeout(() => {
+          onToggleComments?.();
+        }, 300);
+      }
+    }
+  }, [seekVideo, showGestureIndicator, playing, onNavigateNext, onCloseWebsite, onToggleComments]);
+
+  // Determine tap zone based on click position
+  const getTapZone = useCallback((e: React.MouseEvent<HTMLDivElement>): string => {
+    if (!containerRef.current) return "center";
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const width = rect.width;
+    const thirdWidth = width / 3;
+    
+    if (x < thirdWidth) return "left";
+    if (x > thirdWidth * 2) return "right";
+    return "center";
+  }, []);
+
+  // Handle tap with detection for single, double, triple
+  const handleTap = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    // Prevent default to avoid triggering player controls
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const zone = getTapZone(e);
+    
+    // If tapping a different zone, reset the count
+    if (zone !== lastTapZoneRef.current) {
+      tapCountRef.current = 0;
+    }
+    
+    lastTapZoneRef.current = zone;
+    tapCountRef.current += 1;
+    
+    // Clear existing timeout
+    if (tapTimeoutRef.current) {
+      clearTimeout(tapTimeoutRef.current);
+    }
+    
+    const currentTapCount = tapCountRef.current;
+    
+    // Wait to see if there are more taps
+    tapTimeoutRef.current = setTimeout(() => {
+      executeGesture(currentTapCount, zone);
+      tapCountRef.current = 0;
+      lastTapZoneRef.current = "";
+    }, TAP_TIMEOUT);
+    
+  }, [getTapZone, executeGesture]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (tapTimeoutRef.current) {
+        clearTimeout(tapTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const videoUrl = getVideoUrl();
 
+  // Render gesture indicator icon
+  const renderGestureIcon = () => {
+    if (!gestureIndicator.show || !gestureIndicator.type) return null;
+
+    const iconClass = "w-12 h-12 text-white drop-shadow-lg";
+    
+    switch (gestureIndicator.type) {
+      case "forward":
+        return (
+          <div className="flex items-center gap-2">
+            <FastForward className={iconClass} />
+            <span className="text-white text-xl font-bold">+10s</span>
+          </div>
+        );
+      case "backward":
+        return (
+          <div className="flex items-center gap-2">
+            <Rewind className={iconClass} />
+            <span className="text-white text-xl font-bold">-10s</span>
+          </div>
+        );
+      case "play":
+        return <Play className={iconClass} />;
+      case "pause":
+        return <Pause className={iconClass} />;
+      case "next":
+        return (
+          <div className="flex flex-col items-center gap-1">
+            <SkipForward className={iconClass} />
+            <span className="text-white text-sm font-medium">Next Video</span>
+          </div>
+        );
+      case "comments":
+        return (
+          <div className="flex flex-col items-center gap-1">
+            <MessageSquare className={iconClass} />
+            <span className="text-white text-sm font-medium">Comments</span>
+          </div>
+        );
+      case "close":
+        return (
+          <div className="flex flex-col items-center gap-1">
+            <X className={iconClass} />
+            <span className="text-white text-sm font-medium">Close</span>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  // Get position for gesture indicator
+  const getIndicatorPosition = () => {
+    switch (gestureIndicator.zone) {
+      case "left":
+        return "left-8";
+      case "right":
+        return "right-8";
+      default:
+        return "left-1/2 -translate-x-1/2";
+    }
+  };
+
   return (
-    <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+    <div 
+      ref={containerRef}
+      className="relative aspect-video bg-black rounded-lg overflow-hidden"
+    >
       {videoUrl ? (
         <ReactPlayer
           ref={playerRef}
@@ -119,6 +333,24 @@ export default function VideoPlayer({
       ) : (
         <div className="w-full h-full flex items-center justify-center text-white">
           No video URL available
+        </div>
+      )}
+
+      {/* Gesture detection overlay - sits above the video but below other overlays */}
+      <div 
+        className="absolute inset-0 z-15 cursor-pointer"
+        onClick={handleTap}
+        style={{ pointerEvents: isLimitReached ? "none" : "auto" }}
+      />
+
+      {/* Gesture indicator */}
+      {gestureIndicator.show && (
+        <div 
+          className={`absolute top-1/2 -translate-y-1/2 ${getIndicatorPosition()} z-30 pointer-events-none`}
+        >
+          <div className="bg-black/60 rounded-full p-4 animate-pulse">
+            {renderGestureIcon()}
+          </div>
         </div>
       )}
 
@@ -174,6 +406,11 @@ export default function VideoPlayer({
           Gold - Unlimited
         </div>
       )}
+
+      {/* Gesture hint - shows briefly on first load */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white/80 px-3 py-1 rounded text-xs z-10 pointer-events-none">
+        Double-tap sides to seek • Tap center to pause
+      </div>
     </div>
   );
 }
