@@ -113,7 +113,7 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({
                     key={plan.id}
                     className={`relative rounded-lg p-4 border-2 transition-all ${
                       isCurrentOrLower
-                        ? "opacity-50 cursor-not-allowed bg-gray-100"
+                        ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-700"
                         : `bg-gradient-to-r ${plan.bgColor} ${plan.borderColor} hover:shadow-md cursor-pointer`
                     } ${plan.popular ? "ring-2 ring-blue-400" : ""}`}
                   >
@@ -124,7 +124,7 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({
                     )}
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="font-semibold text-lg flex items-center gap-2">
+                        <h3 className="font-semibold text-lg flex items-center gap-2 text-gray-900">
                           <span
                             className={`w-3 h-3 rounded-full bg-gradient-to-r ${plan.color}`}
                           ></span>
@@ -135,7 +135,7 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({
                         </p>
                       </div>
                       <div className="text-right">
-                        <div className="text-2xl font-bold">₹{plan.price}</div>
+                        <div className="text-2xl font-bold text-gray-900">₹{plan.price}</div>
                         <Button
                           size="sm"
                           disabled={isCurrentOrLower}
@@ -151,12 +151,12 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({
               })}
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-gray-500 justify-center pt-2">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center pt-2">
               <Shield className="w-3 h-3" />
               <span>Secure payment • Invoice sent to email</span>
             </div>
 
-            <p className="text-center text-sm text-gray-500">
+            <p className="text-center text-sm text-muted-foreground">
               Current plan: <strong className="capitalize">{currentPlan}</strong>
               {currentPlan === "free" && " (5 min watch time)"}
             </p>
@@ -166,8 +166,8 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({
         {paymentStep === "payment" && (
           <div className="flex flex-col items-center justify-center py-8">
             <Loader2 className="w-12 h-12 text-yellow-500 animate-spin mb-4" />
-            <p className="text-sm text-gray-600">Processing payment for {selectedPlan?.toUpperCase()} plan...</p>
-            <p className="text-xs text-gray-400 mt-2">Do not close this window</p>
+            <p className="text-sm text-muted-foreground">Processing payment for {selectedPlan?.toUpperCase()} plan...</p>
+            <p className="text-xs text-muted-foreground mt-2">Do not close this window</p>
           </div>
         )}
 
@@ -176,11 +176,11 @@ const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <Check className="w-8 h-8 text-green-600" />
             </div>
-            <p className="text-lg font-medium text-gray-900">Payment Successful!</p>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-lg font-medium text-foreground">Payment Successful!</p>
+            <p className="text-sm text-muted-foreground mt-1">
               You're now on the <strong className="capitalize">{selectedPlan}</strong> plan
             </p>
-            <p className="text-xs text-gray-500 mt-2">📧 Invoice sent to your email</p>
+            <p className="text-xs text-muted-foreground mt-2">📧 Invoice sent to your email</p>
           </div>
         )}
       </DialogContent>

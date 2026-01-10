@@ -72,7 +72,7 @@ const Comments = ({ videoId }: any) => {
   };
 
   if (loading) {
-    return <div>Loading comments...</div>;
+    return <div className="text-foreground">Loading comments...</div>;
   }
 
   // Validate comment for special characters
@@ -260,10 +260,10 @@ const Comments = ({ videoId }: any) => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">{comments.length} Comments</h2>
+      <h2 className="text-xl font-semibold text-foreground">{comments.length} Comments</h2>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+        <div className="bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-400 px-4 py-3 rounded relative">
           {error}
           <button
             className="absolute top-0 right-0 px-4 py-3"
@@ -314,7 +314,7 @@ const Comments = ({ videoId }: any) => {
 
       <div className="space-y-4">
         {comments.length === 0 ? (
-          <p className="text-sm text-gray-500 italic">
+          <p className="text-sm text-muted-foreground italic">
             No comments yet. Be the first to comment!
           </p>
         ) : (
@@ -326,7 +326,7 @@ const Comments = ({ videoId }: any) => {
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className="font-medium text-sm">
+                  <span className="font-medium text-sm text-foreground">
                     {comment.usercommented}
                   </span>
                   {comment.userCity && comment.userCity !== "Unknown" && (
@@ -335,7 +335,7 @@ const Comments = ({ videoId }: any) => {
                       {comment.userCity}
                     </span>
                   )}
-                  <span className="text-xs text-gray-600">
+                  <span className="text-xs text-muted-foreground">
                     {formatDistanceToNow(new Date(comment.commentedon))} ago
                   </span>
                 </div>
@@ -370,7 +370,7 @@ const Comments = ({ videoId }: any) => {
                   </div>
                 ) : (
                   <>
-                    <p className="text-sm">{comment.commentbody}</p>
+                    <p className="text-sm text-foreground">{comment.commentbody}</p>
                     
                     {/* Show translated text if available */}
                     {translatedTexts[comment._id] && (
@@ -385,7 +385,7 @@ const Comments = ({ videoId }: any) => {
                       <button
                         onClick={() => handleLike(comment._id)}
                         className={`flex items-center gap-1 text-sm ${
-                          isLikedByUser(comment) ? "text-blue-600" : "text-gray-500"
+                          isLikedByUser(comment) ? "text-blue-600" : "text-muted-foreground"
                         } hover:text-blue-600 transition-colors`}
                         disabled={!user}
                       >
@@ -397,7 +397,7 @@ const Comments = ({ videoId }: any) => {
                       <button
                         onClick={() => handleDislike(comment._id)}
                         className={`flex items-center gap-1 text-sm ${
-                          isDislikedByUser(comment) ? "text-red-600" : "text-gray-500"
+                          isDislikedByUser(comment) ? "text-red-600" : "text-muted-foreground"
                         } hover:text-red-600 transition-colors`}
                         disabled={!user}
                       >
@@ -409,7 +409,7 @@ const Comments = ({ videoId }: any) => {
                       <div className="relative">
                         <button
                           onClick={() => setShowLangDropdown(showLangDropdown === comment._id ? null : comment._id)}
-                          className="flex items-center gap-1 text-sm text-gray-500 hover:text-green-600 transition-colors"
+                          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-green-600 transition-colors"
                           disabled={translatingId === comment._id}
                         >
                           <Globe size={16} />
@@ -418,12 +418,12 @@ const Comments = ({ videoId }: any) => {
                         
                         {/* Language dropdown */}
                         {showLangDropdown === comment._id && (
-                          <div className="absolute top-full left-0 mt-1 bg-white border rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
+                          <div className="absolute top-full left-0 mt-1 bg-popover border border-border rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
                             {languages.map((lang) => (
                               <button
                                 key={lang.code}
                                 onClick={() => handleTranslate(comment._id, comment.commentbody, lang.code)}
-                                className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                                className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-secondary"
                               >
                                 {lang.name}
                               </button>
@@ -437,13 +437,13 @@ const Comments = ({ videoId }: any) => {
                         <>
                           <button
                             onClick={() => handleEdit(comment)}
-                            className="text-sm text-gray-500 hover:text-gray-700"
+                            className="text-sm text-muted-foreground hover:text-foreground"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => handleDelete(comment._id)}
-                            className="text-sm text-gray-500 hover:text-red-600"
+                            className="text-sm text-muted-foreground hover:text-red-600"
                           >
                             Delete
                           </button>

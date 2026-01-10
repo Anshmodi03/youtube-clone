@@ -55,9 +55,9 @@ export default function WatchLaterContent() {
   if (!user) {
     return (
       <div className="text-center py-12">
-        <Clock className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-        <h2 className="text-xl font-semibold mb-2">Save videos for later</h2>
-        <p className="text-gray-600">
+        <Clock className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+        <h2 className="text-xl font-semibold mb-2 text-foreground">Save videos for later</h2>
+        <p className="text-muted-foreground">
           Sign in to access your Watch later playlist.
         </p>
       </div>
@@ -67,9 +67,9 @@ export default function WatchLaterContent() {
   if (watchLater.length === 0) {
     return (
       <div className="text-center py-12">
-        <Clock className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-        <h2 className="text-xl font-semibold mb-2">No videos saved</h2>
-        <p className="text-gray-600">
+        <Clock className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+        <h2 className="text-xl font-semibold mb-2 text-foreground">No videos saved</h2>
+        <p className="text-muted-foreground">
           Videos you save for later will appear here.
         </p>
       </div>
@@ -79,7 +79,7 @@ export default function WatchLaterContent() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <p className="text-sm text-gray-600">{watchLater.length} videos</p>
+        <p className="text-sm text-muted-foreground">{watchLater.length} videos</p>
         <Button className="flex items-center gap-2">
           <Play className="w-4 h-4" />
           Play all
@@ -90,7 +90,7 @@ export default function WatchLaterContent() {
         {watchLater.map((item) => (
           <div key={item._id} className="flex gap-4 group">
             <Link href={`/watch/${item.videoid._id}`} className="flex-shrink-0">
-              <div className="relative w-40 aspect-video bg-gray-100 rounded overflow-hidden">
+              <div className="relative w-40 aspect-video bg-muted rounded overflow-hidden">
                 <video
                   src={`${process.env.NEXT_PUBLIC_BACKEND_URL}/${item.videoid?.filepath}`}
                   className="object-cover group-hover:scale-105 transition-transform duration-200"
@@ -100,18 +100,18 @@ export default function WatchLaterContent() {
 
             <div className="flex-1 min-w-0">
               <Link href={`/watch/${item.videoid._id}`}>
-                <h3 className="font-medium text-sm line-clamp-2 group-hover:text-blue-600 mb-1">
+                <h3 className="font-medium text-sm line-clamp-2 text-foreground group-hover:text-blue-600 mb-1">
                   {item.videoid.videotitle}
                 </h3>
               </Link>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 {item.videoid.videochanel}
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 {item.videoid.views.toLocaleString()} views •{" "}
                 {formatDistanceToNow(new Date(item.videoid.createdAt))} ago
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Added {formatDistanceToNow(new Date(item.createdAt))} ago
               </p>
             </div>

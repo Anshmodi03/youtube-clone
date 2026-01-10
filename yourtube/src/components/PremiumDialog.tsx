@@ -72,26 +72,26 @@ const PremiumDialog: React.FC<PremiumDialogProps> = ({ isOpen, onClose, onSucces
                 <span className="text-gray-600">/month</span>
               </div>
               <ul className="space-y-3">
-                <li className="flex items-center gap-2 text-sm">
+                <li className="flex items-center gap-2 text-sm text-gray-700">
                   <Check className="w-4 h-4 text-green-500" />
                   <span>Unlimited video downloads</span>
                 </li>
-                <li className="flex items-center gap-2 text-sm">
+                <li className="flex items-center gap-2 text-sm text-gray-700">
                   <Check className="w-4 h-4 text-green-500" />
                   <span>Ad-free experience</span>
                 </li>
-                <li className="flex items-center gap-2 text-sm">
+                <li className="flex items-center gap-2 text-sm text-gray-700">
                   <Check className="w-4 h-4 text-green-500" />
                   <span>Download in HD quality</span>
                 </li>
-                <li className="flex items-center gap-2 text-sm">
+                <li className="flex items-center gap-2 text-sm text-gray-700">
                   <Check className="w-4 h-4 text-green-500" />
                   <span>Priority support</span>
                 </li>
               </ul>
             </div>
             
-            <div className="flex items-center gap-2 text-xs text-gray-500 justify-center">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
               <Shield className="w-3 h-3" />
               <span>Secure payment powered by Razorpay</span>
             </div>
@@ -111,8 +111,8 @@ const PremiumDialog: React.FC<PremiumDialogProps> = ({ isOpen, onClose, onSucces
         {paymentStep === "payment" && (
           <div className="flex flex-col items-center justify-center py-8">
             <Loader2 className="w-12 h-12 text-yellow-500 animate-spin mb-4" />
-            <p className="text-sm text-gray-600">Please wait while we process your payment...</p>
-            <p className="text-xs text-gray-400 mt-2">Do not close this window</p>
+            <p className="text-sm text-muted-foreground">Please wait while we process your payment...</p>
+            <p className="text-xs text-muted-foreground mt-2">Do not close this window</p>
           </div>
         )}
 
@@ -121,8 +121,8 @@ const PremiumDialog: React.FC<PremiumDialogProps> = ({ isOpen, onClose, onSucces
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <Check className="w-8 h-8 text-green-600" />
             </div>
-            <p className="text-lg font-medium text-gray-900">Payment Successful!</p>
-            <p className="text-sm text-gray-600 mt-1">You now have unlimited downloads</p>
+            <p className="text-lg font-medium text-foreground">Payment Successful!</p>
+            <p className="text-sm text-muted-foreground mt-1">You now have unlimited downloads</p>
             <div className="flex items-center gap-1 text-yellow-600 mt-3">
               <Zap className="w-4 h-4" />
               <span className="text-sm font-medium">Premium Active</span>

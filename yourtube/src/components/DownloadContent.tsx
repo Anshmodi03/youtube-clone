@@ -55,15 +55,15 @@ export default function DownloadContent() {
   };
 
   if (loading) {
-    return <div className="p-4">Loading downloads...</div>;
+    return <div className="p-4 text-foreground">Loading downloads...</div>;
   }
 
   if (!user) {
     return (
       <div className="text-center py-12">
-        <Download className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-        <h2 className="text-xl font-semibold mb-2">Your Downloads</h2>
-        <p className="text-gray-600">
+        <Download className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+        <h2 className="text-xl font-semibold mb-2 text-foreground">Your Downloads</h2>
+        <p className="text-muted-foreground">
           Sign in to see your downloaded videos.
         </p>
       </div>
@@ -74,11 +74,11 @@ export default function DownloadContent() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <h1 className="text-2xl font-bold flex items-center gap-2 text-foreground">
             <Download className="w-6 h-6" />
             Downloads
           </h1>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             {downloads.length} video{downloads.length !== 1 ? "s" : ""} downloaded
           </p>
         </div>
@@ -92,7 +92,7 @@ export default function DownloadContent() {
           </Button>
         )}
         {user?.isPremium && (
-          <div className="flex items-center gap-2 text-yellow-600 bg-yellow-50 px-3 py-1.5 rounded-full">
+          <div className="flex items-center gap-2 text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-1.5 rounded-full">
             <Crown className="w-4 h-4" />
             <span className="text-sm font-medium">Premium</span>
           </div>
@@ -101,13 +101,13 @@ export default function DownloadContent() {
 
       {downloads.length === 0 ? (
         <div className="text-center py-12">
-          <Download className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h2 className="text-xl font-semibold mb-2">No downloads yet</h2>
-          <p className="text-gray-600">
+          <Download className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+          <h2 className="text-xl font-semibold mb-2 text-foreground">No downloads yet</h2>
+          <p className="text-muted-foreground">
             Videos you download will appear here.
           </p>
           {!user?.isPremium && (
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-sm text-muted-foreground mt-2">
               Free users can download 1 video per day.
             </p>
           )}
@@ -117,7 +117,7 @@ export default function DownloadContent() {
           {downloads.map((item) => (
             <div key={item._id} className="flex gap-4 group">
               <Link href={`/watch/${item._id}`} className="flex-shrink-0">
-                <div className="relative w-40 aspect-video bg-gray-100 rounded overflow-hidden">
+                <div className="relative w-40 aspect-video bg-muted rounded overflow-hidden">
                   <video
                     src={`${process.env.NEXT_PUBLIC_BACKEND_URL}/${item.filepath}`}
                     className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-200"
@@ -127,19 +127,19 @@ export default function DownloadContent() {
 
               <div className="flex-1 min-w-0">
                 <Link href={`/watch/${item._id}`}>
-                  <h3 className="font-medium text-sm line-clamp-2 group-hover:text-blue-600 mb-1">
+                  <h3 className="font-medium text-sm line-clamp-2 text-foreground group-hover:text-blue-600 mb-1">
                     {item.videotitle}
                   </h3>
                 </Link>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   {item.videochanel}
                 </p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   {item.views?.toLocaleString()} views •{" "}
                   {item.createdAt && formatDistanceToNow(new Date(item.createdAt))} ago
                 </p>
                 {item.downloadedAt && (
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Downloaded {formatDistanceToNow(new Date(item.downloadedAt))} ago
                   </p>
                 )}
