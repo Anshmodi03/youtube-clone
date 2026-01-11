@@ -13,7 +13,7 @@ const ReactPlayer = dynamic(() => import("react-player"), {
       Loading player...
     </div>
   )
-});
+}) as any;
 
 interface VideoPlayerProps {
   video: {
